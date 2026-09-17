@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Active V2RAY - Panel Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { box-sizing: border-box; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        html.dark body { background-color: #060913 !important; color: #F8FAFC !important; }
+        .dark .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5); }
+        .dark .glass-header { background: rgba(11, 17, 32, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .dark .sub-card { background: rgba(6, 11, 25, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
+
+        html:not(.dark) body { background-color: #F1F5F9 !important; color: #0F172A !important; }
+        html:not(.dark) .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        html:not(.dark) .glass-header { background: rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        html:not(.dark) .sub-card { background: #F8FAFC; border: 1px solid #E2E8F0; }
+
+        .loader { border: 3px solid rgba(59, 130, 246, 0.15); border-radius: 50%; border-top: 3px solid #3B82F6; width: 22px; height: 22px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .progress-bar-container {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        html:not(.dark) .progress-bar-container {
+            background: #E2E8F0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #CBD5E1;
+        }
+
+        .neon-bar-cyan {
+            background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+            background-size: 200% 100%;
+            animation: cyberShimmer 3s infinite linear;
+            box-shadow: 0 0 16px rgba(6, 182, 212, 0.7), 0 0 4px rgba(59, 130, 246, 0.9);
+        }
+
+        .neon-bar-amber {
+            background: linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+            background-size: 200% 100%;
+            animation: cyberShimmer 2.2s infinite linear;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.7), 0 0 6px rgba(249, 115, 22, 0.9);
+        }
+
+        .neon-bar-danger {
+            background: linear-gradient(90deg, #e11d48 0%, #f43f5e 50%, #ec4899 100%);
+            background-size: 200% 100%;
+            animation: cyberShimmer 1.8s infinite linear;
+            box-shadow: 0 0 20px rgba(225, 29, 72, 0.8), 0 0 8px rgba(244, 63, 94, 1);
+        }
+
+        @keyframes cyberShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .sync-active-dot { box-shadow: 0 0 8px #10b981, 0 0 16px #34d399; }
+        .glow-online { box-shadow: 0 0 8px #10B981, 0 0 16px rgba(16, 185, 129, 0.6); }
+
+        .flag-avatar-container {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            background: transparent;
+            position: relative;
+            flex-shrink: 0;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            mask-image: radial-gradient(white, black);
+        }
+        html:not(.dark) .flag-avatar-container {
+            border: 1px solid #CBD5E1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .flag-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.8);
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .flag-avatar-container-lg {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            background: transparent;
+            position: relative;
+            flex-shrink: 0;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            mask-image: radial-gradient(white, black);
+        }
+        html:not(.dark) .flag-avatar-container-lg {
+            border: 1px solid #94A3B8;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .neon-card-glow {
+            position: relative;
+            border-radius: 1rem;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .neon-card-glow::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, transparent, #3b82f6, #06b6d4, #10b981, transparent);
+            animation: rotateGlow 4s linear infinite;
+            z-index: -2;
+        }
+        .neon-card-glow.card-danger::before {
+            background: conic-gradient(transparent, transparent, #e11d48, #f43f5e, #f59e0b, transparent);
+            animation: rotateGlow 2.5s linear infinite;
+        }
+        .neon-card-glow::after {
+            content: '';
+            position: absolute;
+            inset: 1.5px;
+            border-radius: calc(1rem - 1.5px);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(16px);
+            z-index: -1;
+        }
+        html:not(.dark) .neon-card-glow::after {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-neon-glow {
+            box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.35), 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+        }
+
+        /* QR Code display styling */
+        .qr-wrapper {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 1rem;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        .qr-wrapper img, .qr-wrapper canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pb-24">
+
+    <header class="w-full glass-header backdrop-blur-md sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer select-none" onclick="goHome()">
+                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-slate-900 shadow-md shadow-blue-500/25 border border-white/10 p-1">
+                    <img src="https://raw.githubusercontent.com/VPS-SCRIPT/V2RAY-PANEL/main/v2ray.png" alt="V2Ray Logo" class="w-full h-full object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-bolt text-blue-500 text-base\'></i>'">
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base tracking-tight leading-tight flex items-center gap-1 text-slate-900 dark:text-white">
+                        <span>Active</span>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-400">V2RAY</span>
+                    </h1>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Real-time X-UI Panel Portal</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="adminPortalBtn" onclick="openAdminModal()" title="Admin Panel" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700/90 border border-slate-200 dark:border-slate-700/80 transition flex items-center justify-center text-slate-700 dark:text-slate-300 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-gear text-blue-500 dark:text-blue-400 text-sm"></i>
+                </button>
+                <button id="adminLogoutBtn" onclick="adminLogout()" title="Logout Admin" class="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800/60 transition hidden items-center justify-center text-red-500 dark:text-red-400 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl px-4 py-5 md:py-6">
+
+        <!-- 1. AVAILABLE NODES VIEW -->
+        <section id="dashboardView">
+            <div class="flex justify-between items-center mb-5">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black tracking-tight text-slate-900 dark:text-white">Available Nodes</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5">ဆာဗာကို နှိပ်၍ Panel အတွင်းရှိ တကယ့် Client စာရင်း စစ်ဆေးပါ</p>
+                </div>
+                <button onclick="loadPublicServers()" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 transition flex items-center border border-slate-200 dark:border-slate-700 active:scale-95 font-medium">
+                    <i class="fa-solid fa-rotate mr-1.5 text-blue-500"></i> Refresh
+                </button>
+            </div>
+
+            <div id="serversLoader" class="text-center py-16 hidden">
+                <div class="loader mx-auto mb-3"></div>
+                <p class="text-slate-500 dark:text-slate-400 text-xs font-medium">ဆာဗာများ ဆွဲယူနေပါသည်...</p>
+            </div>
+
+            <div id="publicServersList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+        </section>
+
+        <!-- 2. REALTIME CLIENTS VIEW -->
+        <section id="clientsView" class="hidden">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="goHome()" class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition text-xs font-bold bg-slate-100 dark:bg-slate-800/90 py-2 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-chevron-left text-[11px]"></i> Nodes
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-bold select-none">
+                        <span id="syncPulseDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 sync-active-dot animate-pulse"></span>
+                        <span>Auto-Sync (3s)</span>
+                    </div>
+                    <button onclick="fetchPanelClients(false)" title="Sync Now" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 px-3 py-1.5 rounded-xl text-blue-600 dark:text-blue-400 transition flex items-center border border-slate-200 dark:border-slate-700 font-bold active:scale-95 shadow-sm">
+                        <i id="manualSyncIcon" class="fa-solid fa-arrows-rotate mr-1.5"></i> Sync
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-4 md:p-5 mb-4 rounded-2xl flex justify-between items-center border-l-4 border-l-blue-600 dark:border-l-blue-500">
+                <div class="flex items-center gap-3">
+                    <div id="currentServerFlagBox"></div>
+                    <div>
+                        <h2 id="currentServerTitle" class="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">Server Name</h2>
+                        <p id="currentServerNote" class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 hidden"></p>
+                        <span id="currentServerSub" class="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connected • VLESS
+                        </span>
+                    </div>
+                </div>
+                <button onclick="prepareAddClient()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-emerald-600/20 transition flex items-center active:scale-95">
+                    <i class="fa-solid fa-user-plus mr-1.5"></i> Add Client
+                </button>
+            </div>
+
+            <!-- Stats Counters -->
+            <div class="grid grid-cols-3 gap-2.5 mb-4">
+                <div class="glass-panel p-3 rounded-xl text-center border border-slate-200 dark:border-slate-800">
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase">Total Clients</span>
+                    <span id="statTotal" class="text-base md:text-lg font-black text-slate-900 dark:text-white font-mono">0</span>
+                </div>
+                <div class="glass-panel p-3 rounded-xl text-center border border-emerald-500/20 bg-emerald-500/5">
+                    <span class="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold uppercase">Online (Active)</span>
+                    <span id="statOnline" class="text-base md:text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">0</span>
+                </div>
+                <div class="glass-panel p-3 rounded-xl text-center border border-slate-200 dark:border-slate-800">
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold uppercase">Offline</span>
+                    <span id="statOffline" class="text-base md:text-lg font-black text-slate-700 dark:text-slate-300 font-mono">0</span>
+                </div>
+            </div>
+
+            <div class="mb-3.5 px-1 flex justify-between items-center">
+                <h3 class="font-bold text-xs md:text-sm text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase">
+                    <i class="fa-solid fa-users text-blue-500 text-xs"></i> Live Inbound Clients
+                </h3>
+            </div>
+
+            <div id="clientsLoader" class="text-center py-16 hidden">
+                <div class="loader mx-auto mb-3"></div>
+                <p class="text-slate-500 dark:text-slate-400 text-xs font-medium">3X-UI Panel ဆီသို့ ချိတ်ဆက်၍ Client စာရင်း ဆွဲယူနေပါသည်...</p>
+            </div>
+
+            <div id="clientsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- 3. ADMIN PANEL -->
+        <section id="adminPanelView" class="hidden">
+            <div class="flex justify-between items-center mb-5">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-blue-500"></i> Admin Panel
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5">X-UI ဆာဗာများ စီမံခန့်ခွဲရန်</p>
+                </div>
+                <button onclick="prepareAddServer()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-blue-500/25 transition flex items-center active:scale-95">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Add Server
+                </button>
+            </div>
+
+            <div id="adminServersList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+        </section>
+
+    </main>
+
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Dark/Light Mode" class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-amber-400 border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none">
+            <i id="themeIcon" class="fa-solid fa-sun text-lg"></i>
+        </button>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 relative rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+            <button onclick="closeModal('adminLoginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center mx-auto mb-2 text-blue-600 dark:text-blue-400 text-xl">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Admin Verification</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Master Password ထည့်သွင်းပါ</p>
+            </div>
+            
+            <div class="space-y-3.5">
+                <div class="relative">
+                    <input type="password" id="adminMasterPass" placeholder="Master Password..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white pr-10 focus:outline-none focus:border-blue-500">
+                    <button type="button" onclick="togglePassVisibility('adminMasterPass', 'eyeIconMaster')" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <i id="eyeIconMaster" class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                </div>
+                <button onclick="verifyAdminLogin()" id="adminLoginSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition text-xs md:text-sm active:scale-95 shadow-md shadow-blue-500/20">
+                    Unlock Admin Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVER ADD / EDIT MODAL -->
+    <div id="serverModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 relative rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="closeModal('serverModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="serverModalTitle" class="text-base font-extrabold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                <i class="fa-solid fa-server text-blue-500"></i> Server Configuration
+            </h3>
+            
+            <input type="hidden" id="sId">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Server Name</label>
+                    <input type="text" id="sName" placeholder="e.g. Myanmar All Sim Wifi 1" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Server Note (Description)</label>
+                    <input type="text" id="sNote" placeholder="e.g. 10Gbps High Speed, All SIMs Supported" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Flag Link (Optional)</label>
+                    <input type="text" id="sFlag" placeholder="https://flagcdn.com/w80/mm.png" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Inbound ID</label>
+                    <input type="number" id="sInbound" placeholder="e.g. 1" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Panel Link (URL)</label>
+                    <input type="text" id="sUrl" placeholder="http://v-1.d-chat.site:2053/vG5gW31oZL1l17r/xui" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-mono">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Username</label>
+                        <input type="text" id="sUser" placeholder="admin" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Password</label>
+                        <input type="password" id="sPass" placeholder="password" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white pr-9 focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="togglePassVisibility('sPass', 'eyeIconSPass')" class="absolute right-2.5 bottom-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <i id="eyeIconSPass" class="fa-solid fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="saveServer()" id="saveServerBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition text-xs md:text-sm shadow-md shadow-blue-500/25 mt-2 active:scale-95">
+                    Save Server Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENT ADD MODAL -->
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 relative rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+            <button onclick="closeModal('clientModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="clientModalTitle" class="text-base font-extrabold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                <i class="fa-solid fa-user-plus text-emerald-500"></i> Add Client to Panel
+            </h3>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Client Name (Email)</label>
+                    <input type="text" id="cEmail" placeholder="e.g. user01" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Data (GB)</label>
+                        <input type="number" id="cGB" value="300" placeholder="0 = Unlimited" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Valid Days</label>
+                        <input type="number" id="cDays" value="30" placeholder="0 = Unlimited" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <button onclick="saveClientToPanel()" id="clientSubmitBtn" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition text-xs md:text-sm shadow-md shadow-emerald-600/25 mt-2 active:scale-95">
+                    Create in 3X-UI Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENT EDIT MODAL -->
+    <div id="editClientModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md hidden z-[125] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 relative rounded-2xl border-slate-200 dark:border-slate-700 shadow-2xl">
+            <button onclick="closeModal('editClientModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="editClientModalTitle" class="text-base font-extrabold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                <i class="fa-solid fa-pen-to-square text-blue-500"></i> Edit Client in Panel
+            </h3>
+            
+            <input type="hidden" id="editClientUuid">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Client Name (Email)</label>
+                    <input type="text" id="editCEmail" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Total Limit (GB)</label>
+                        <input type="number" id="editCGB" placeholder="0 = Unlimited" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Add More Days</label>
+                        <input type="number" id="editCDays" placeholder="0 = Keep original" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="editCEnable" class="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer">
+                    <label for="editCEnable" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">Client Enabled (Active)</label>
+                </div>
+                <button onclick="saveClientEditToPanel()" id="editClientSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition text-xs md:text-sm shadow-md shadow-blue-600/25 mt-2 active:scale-95">
+                    Update in 3X-UI Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW CLIENT SUCCESS CONFIG POPUP MODAL (WITH QR CODE) -->
+    <div id="newConfigModal" class="fixed inset-0 bg-slate-900/75 dark:bg-black/85 backdrop-blur-md hidden z-[140] flex items-center justify-center p-4">
+        <div class="glass-panel modal-neon-glow w-full max-w-md p-5 md:p-6 relative rounded-3xl border border-emerald-500/40 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <button onclick="closeModal('newConfigModal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+            
+            <div class="text-center mb-3">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2 text-emerald-500 dark:text-emerald-400 text-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-base md:text-lg font-black text-slate-900 dark:text-white leading-tight">Client Created Successfully!</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">ဖုန်းဖြင့် တိုက်ရိုက် Scan ဖတ်ရန် သို့မဟုတ် Key ကူးယူရန်</p>
+                
+                <div class="flex items-center justify-center gap-2 mt-2.5 flex-wrap">
+                    <span id="popupClientEmailBadge" class="px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-bold border border-blue-500/20 font-mono">user</span>
+                    <span id="popupClientDataBadge" class="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold border border-emerald-500/20 font-mono">300 GB</span>
+                    <span id="popupClientDaysBadge" class="px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-bold border border-purple-500/20 font-mono">30 Days</span>
+                </div>
+            </div>
+
+            <!-- QR Code Box -->
+            <div class="flex justify-center my-3">
+                <div class="qr-wrapper">
+                    <div id="newClientQrCode"></div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-100 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 mb-3 relative group">
+                <textarea id="newConfigText" readonly class="w-full bg-transparent text-slate-800 dark:text-emerald-400 text-xs font-mono h-20 resize-none outline-none break-all select-all leading-relaxed" onclick="this.select()"></textarea>
+            </div>
+            
+            <div class="flex gap-2.5">
+                <button onclick="closeModal('newConfigModal')" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 transition text-xs active:scale-95">Cancel</button>
+                <button onclick="copyNewConfig()" id="newCopyBtn" class="flex-[1.4] bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black py-2.5 rounded-xl shadow-lg shadow-emerald-500/30 transition text-xs flex items-center justify-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-copy text-sm"></i> Copy & Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NORMAL CONFIG POPUP MODAL (WITH QR CODE) -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/85 backdrop-blur-md hidden z-[130] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-5 md:p-6 relative rounded-2xl border border-emerald-500/40 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <button onclick="closeModal('configModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-center text-base font-extrabold text-emerald-600 dark:text-emerald-400 mb-0.5 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-qrcode"></i> V2Ray Scan QR & Config
+            </h3>
+            <p class="text-center text-[11px] text-slate-500 dark:text-slate-400 mb-3">VPN App (v2rayNG, V2Box) ဖြင့် တိုက်ရိုက် Scan ဖတ်နိုင်ပါသည်</p>
+            
+            <!-- QR Code Box -->
+            <div class="flex justify-center my-3">
+                <div class="qr-wrapper">
+                    <div id="clientQrCode"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3 mb-3">
+                <textarea id="configText" readonly class="w-full bg-transparent text-slate-800 dark:text-slate-200 text-xs font-mono h-20 resize-none outline-none break-all select-all" onclick="this.select()"></textarea>
+            </div>
+            
+            <div class="flex gap-2.5">
+                <button onclick="closeModal('configModal')" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 transition text-xs active:scale-95">Close</button>
+                <button onclick="copyConfig()" id="copyBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl shadow-md shadow-emerald-600/25 transition text-xs flex items-center justify-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-copy"></i> Copy Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md hidden z-[200] flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 relative rounded-2xl border-slate-200 dark:border-slate-700 text-center shadow-2xl">
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500 mb-2"></i>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Confirm Action</h3>
+            <p id="confirmMsg" class="text-slate-500 dark:text-slate-400 text-xs mb-4 leading-relaxed"></p>
+            <div class="flex gap-2.5">
+                <button onclick="closeModal('confirmModal')" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-2 rounded-xl transition text-xs font-medium text-slate-600 dark:text-slate-300">Cancel</button>
+                <button id="confirmActionBtn" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-xl transition text-xs font-bold text-white shadow-md shadow-red-600/25 active:scale-95">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getFirestore, collection, doc, getDocs, setDoc, deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDxTGRmbttgZr0MpXfkX4rpwMn_qVG1SU",
+            authDomain: "v2ray-panel-702c8.firebaseapp.com",
+            projectId: "v2ray-panel-702c8",
+            storageBucket: "v2ray-panel-702c8.firebasestorage.app",
+            messagingSenderId: "9251021177",
+            appId: "1:9251021177:web:6babd669384219ff9c8fa8"
+        };
+
+        const WORKER_URL = "https://v2ray-panel.activevpn2026.workers.dev";
+
+        let app, db;
+        let ADMIN_PASS = localStorage.getItem("firebase_v2ray_admin_pass") || "";
+        let selectedServer = null;
+        let currentClientsList = [];
+        let autoSyncInterval = null;
+        let isSyncing = false;
+
+        // In-memory traffic cache for real-time live delta flow
+        const clientTrafficHistory = {};
+
+        // Helper: Dynamic QR Code Generator
+        function renderQrCode(containerId, textUrl, size = 160) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            el.innerHTML = "";
+            if (!textUrl) return;
+
+            new QRCode(el, {
+                text: textUrl,
+                width: size,
+                height: size,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function startAutoSync() {
+            stopAutoSync();
+            autoSyncInterval = setInterval(() => {
+                if (selectedServer && document.getElementById('clientsView') && !document.getElementById('clientsView').classList.contains('hidden')) {
+                    fetchPanelClients(true);
+                }
+            }, 3000);
+        }
+
+        function stopAutoSync() {
+            if (autoSyncInterval) {
+                clearInterval(autoSyncInterval);
+                autoSyncInterval = null;
+            }
+        }
+
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                loadPublicServers();
+            } catch (e) {
+                console.error("Firebase Init Error:", e);
+                showToast("Firebase Error: " + e.message, true);
+            }
+        }
+
+        window.initTheme = function() {
+            const savedTheme = localStorage.getItem('v2ray_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                updateThemeIcon(false);
+            } else {
+                document.documentElement.classList.add('dark');
+                updateThemeIcon(true);
+            }
+        }
+
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('v2ray_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-lg' : 'fa-solid fa-moon text-slate-700 text-lg';
+            }
+        }
+
+        window.showToast = function(msg, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-20 right-4 md:bottom-6 md:right-20 max-w-sm p-3.5 rounded-xl shadow-2xl z-[300] font-medium text-xs transition-all duration-300 flex items-center border ${isError ? 'bg-red-600/95 border-red-400 text-white' : 'bg-emerald-600/95 border-emerald-400 text-white'}`;
+            toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-2 text-sm"></i> <span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Accurate Byte Conversion Utility
+        function formatBytes(bytes) {
+            const num = Number(bytes);
+            if (!num || isNaN(num) || num <= 0) return "0 B";
+            const k = 1024;
+            const sizes = ["B", "KB", "MB", "GB", "TB"];
+            const i = Math.floor(Math.log(num) / Math.log(k));
+            return (num / Math.pow(k, i)).toFixed(2) + " " + sizes[i];
+        }
+
+        window.togglePassVisibility = function(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); }
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); }
+
+        let pendingConfirm = null;
+        window.openConfirm = function(msg, onConfirm) {
+            document.getElementById('confirmMsg').innerText = msg;
+            pendingConfirm = onConfirm;
+            openModal('confirmModal');
+        }
+        document.getElementById('confirmActionBtn').onclick = () => {
+            closeModal('confirmModal');
+            if (pendingConfirm) pendingConfirm();
+        };
+
+        window.showView = function(viewId) {
+            ['dashboardView', 'clientsView', 'adminPanelView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+            document.getElementById('adminLogoutBtn').classList.toggle('hidden', !ADMIN_PASS);
+        }
+
+        window.goHome = function() {
+            stopAutoSync();
+            showView('dashboardView');
+            loadPublicServers();
+        }
+
+        window.loadPublicServers = async function() {
+            if (!db) return;
+            const loader = document.getElementById('serversLoader');
+            const list = document.getElementById('publicServersList');
+            list.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            try {
+                const snap = await getDocs(collection(db, 'servers'));
+                const servers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                if (servers.length === 0) {
+                    list.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-slate-500 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-xs">
+                            ဆာဗာ မရှိသေးပါ။ အပေါ်ညာဘက် ဂီယာခလုတ်မှ Admin Panel သို့ဝင်၍ ဆာဗာ အသစ်ထည့်ပါ။
+                        </div>
+                    `;
+                } else {
+                    servers.forEach(s => {
+                        const flagHtml = s.flagLink 
+                            ? `<div class="flag-avatar-container"><img src="${s.flagLink}" class="flag-avatar-img" onerror="this.parentElement.innerHTML='<div class=\\'text-blue-500 font-black text-xs\\'>${s.name ? s.name.charAt(0) : 'S'}</div>'"></div>` 
+                            : `<div class="flag-avatar-container text-blue-600 dark:text-blue-400 font-black text-xs">${s.name ? s.name.charAt(0) : 'S'}</div>`;
+                        
+                        const noteHtml = s.note 
+                            ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[210px] mt-0.5">${s.note}</p>` 
+                            : '';
+
+                        const clientCountVal = s.clientCount !== undefined ? s.clientCount : 0;
+
+                        list.innerHTML += `
+                            <div class="glass-panel p-3.5 rounded-2xl cursor-pointer hover:border-blue-500/50 transition-all duration-200 flex items-center justify-between group active:scale-[0.99]" onclick='selectServer(${JSON.stringify(s)})'>
+                                <div class="flex items-center gap-3">
+                                    ${flagHtml}
+                                    <div>
+                                        <h3 class="font-extrabold text-slate-900 dark:text-white text-sm leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">${s.name}</h3>
+                                        ${noteHtml}
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-semibold">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> VLESS • Ready
+                                            </p>
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                <i class="fa-solid fa-users text-[9px]"></i> ${clientCountVal} Clients
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-blue-600 transition">
+                                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (e) {
+                showToast(e.message, true);
+            }
+            loader.classList.add('hidden');
+        }
+
+        window.selectServer = function(s) {
+            selectedServer = s;
+            document.getElementById('currentServerTitle').innerText = s.name;
+            
+            const noteEl = document.getElementById('currentServerNote');
+            if (s.note) {
+                noteEl.innerText = s.note;
+                noteEl.classList.remove('hidden');
+            } else {
+                noteEl.classList.add('hidden');
+            }
+
+            document.getElementById('currentServerSub').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connecting to VLESS...`;
+            
+            const flagBox = document.getElementById('currentServerFlagBox');
+            if (s.flagLink) {
+                flagBox.innerHTML = `<div class="flag-avatar-container-lg"><img src="${s.flagLink}" class="flag-avatar-img" onerror="this.parentElement.innerHTML='<div class=\\'text-blue-500 font-bold text-xs\\'><i class=\\'fa-solid fa-server\\'></i></div>'"></div>`;
+            } else {
+                flagBox.innerHTML = `<div class="flag-avatar-container-lg text-blue-600 dark:text-blue-400 font-black text-sm">${s.name ? s.name.charAt(0) : 'S'}</div>`;
+            }
+
+            showView('clientsView');
+            fetchPanelClients(false);
+            startAutoSync();
+        }
+
+        window.fetchPanelClients = async function(isSilent = false) {
+            if (!selectedServer || isSyncing) return;
+            isSyncing = true;
+
+            const loader = document.getElementById('clientsLoader');
+            const container = document.getElementById('clientsContainer');
+            const pulseDot = document.getElementById('syncPulseDot');
+            
+            if (!isSilent) {
+                container.innerHTML = '';
+                loader.classList.remove('hidden');
+            } else if (pulseDot) {
+                pulseDot.classList.add('scale-125');
+                setTimeout(() => pulseDot.classList.remove('scale-125'), 400);
+            }
+
+            try {
+                const res = await fetch(`${WORKER_URL}?action=getClients`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        panelUrl: selectedServer.url,
+                        username: selectedServer.username,
+                        password: selectedServer.password,
+                        inboundId: selectedServer.inboundId
+                    })
+                });
+
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || "Failed to load clients from panel");
+                }
+
+                const info = data.inboundInfo || {};
+                const protocolText = (info.protocol || 'VLESS').toUpperCase();
+                document.getElementById('currentServerSub').innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Connected • ${protocolText}
+                `;
+
+                currentClientsList = data.clients || [];
+                renderClientsList(currentClientsList);
+
+                if (db && selectedServer && selectedServer.id) {
+                    try {
+                        const docRef = doc(db, 'servers', selectedServer.id);
+                        setDoc(docRef, { clientCount: currentClientsList.length }, { merge: true });
+                        selectedServer.clientCount = currentClientsList.length;
+                    } catch (e) {}
+                }
+            } catch (err) {
+                if (!isSilent) {
+                    document.getElementById('currentServerSub').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Connection Error`;
+                    container.innerHTML = `
+                        <div class="col-span-full p-6 text-center glass-panel rounded-2xl border border-red-500/30 text-xs">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mb-2"></i>
+                            <p class="font-bold text-red-500 mb-1">3X-UI Panel ဆီသို့ ချိတ်ဆက်၍မရပါ</p>
+                            <p class="text-slate-400 text-[11px] mb-3">${err.message}</p>
+                            <button onclick="fetchPanelClients(false)" class="px-3 py-1.5 bg-blue-600 text-white rounded-xl font-semibold active:scale-95">ပြန်လည်ကြိုးစားရန်</button>
+                        </div>
+                    `;
+                    showToast(err.message, true);
+                }
+            } finally {
+                loader.classList.add('hidden');
+                isSyncing = false;
+            }
+        }
+
+        function renderClientsList(clients) {
+            const container = document.getElementById('clientsContainer');
+            container.innerHTML = '';
+
+            const now = Date.now();
+            let total = clients.length;
+            let onlineCount = 0;
+
+            if (total === 0) {
+                document.getElementById('statTotal').innerText = "0";
+                document.getElementById('statOnline').innerText = "0";
+                document.getElementById('statOffline').innerText = "0";
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs">ဤ Inbound တွင် Client မရှိသေးပါ။ "Add Client" ဖြင့် ထည့်သွင်းနိုင်ပါသည်။</div>`;
+                return;
+            }
+
+            clients.forEach((c, index) => {
+                const clientKey = c.uuid || c.id || c.email || String(index);
+                
+                // Extract accurate Bytes
+                const downBytes = Number(c.down || (c.clientStats && c.clientStats.down) || 0);
+                const upBytes = Number(c.up || (c.clientStats && c.clientStats.up) || 0);
+                const totalBytesNow = downBytes + upBytes;
+
+                // Accurate Live Traffic flow check
+                let isActivelyFlowing = false;
+                if (!clientTrafficHistory[clientKey]) {
+                    clientTrafficHistory[clientKey] = {
+                        prevBytes: totalBytesNow,
+                        lastTrafficIncrease: 0
+                    };
+                } else {
+                    if (totalBytesNow > clientTrafficHistory[clientKey].prevBytes) {
+                        clientTrafficHistory[clientKey].lastTrafficIncrease = now;
+                    }
+                    clientTrafficHistory[clientKey].prevBytes = totalBytesNow;
+                    
+                    const timeSinceLastIncrease = (now - (clientTrafficHistory[clientKey].lastTrafficIncrease || 0)) / 1000;
+                    if (clientTrafficHistory[clientKey].lastTrafficIncrease > 0 && timeSinceLastIncrease <= 30) {
+                        isActivelyFlowing = true;
+                    }
+                }
+
+                const finalOnline = Boolean(c.isOnline === true || c.online === true || isActivelyFlowing);
+                if (finalOnline) onlineCount++;
+
+                // 3X-UI Total Limit (stores as bytes in `total`)
+                let totalLimitBytes = 0;
+                if (c.total !== undefined && Number(c.total) > 0) {
+                    totalLimitBytes = Number(c.total);
+                } else if (c.totalGB !== undefined && Number(c.totalGB) > 0) {
+                    const tGb = Number(c.totalGB);
+                    totalLimitBytes = tGb > 100000 ? tGb : tGb * 1073741824;
+                }
+
+                const totalGBVal = totalLimitBytes > 0 ? (totalLimitBytes / 1073741824) : 0;
+                const usedGB = (totalBytesNow / 1073741824).toFixed(2);
+                const totalGBText = totalGBVal === 0 ? "Unlimited" : totalGBVal.toFixed(2) + " GB";
+                const percent = totalGBVal > 0 ? Math.min(((totalBytesNow / 1073741824) / totalGBVal) * 100, 100) : 0;
+                const isFull = totalGBVal > 0 && (totalBytesNow / 1073741824) >= totalGBVal;
+                
+                let expDate = "Unlimited";
+                let isExpired = false;
+                const expTimestamp = Number(c.expiryTime) || 0;
+                if (expTimestamp > 0) {
+                    expDate = new Date(expTimestamp).toISOString().split('T')[0];
+                    if (Date.now() > expTimestamp) isExpired = true;
+                }
+
+                const statusHtml = finalOnline
+                    ? '<div class="flex items-center gap-1.5"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 glow-online"></span></span><span class="text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded tracking-wide font-mono">ONLINE</span></div>' 
+                    : '<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span><span class="text-[9px] font-medium bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-mono">OFFLINE</span></div>';
+
+                let barClass = "neon-bar-cyan";
+                let textClass = "text-cyan-600 dark:text-cyan-400";
+                if (isFull || isExpired) {
+                    barClass = "neon-bar-danger";
+                    textClass = "text-rose-500";
+                } else if (percent > 75) {
+                    barClass = "neon-bar-amber";
+                    textClass = "text-amber-500";
+                }
+
+                const isDanger = (c.enable === false || isExpired || isFull);
+
+                container.innerHTML += `
+                    <div class="neon-card-glow ${isDanger ? 'card-danger' : ''} p-4 relative shadow-lg">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h4 class="font-extrabold text-slate-900 dark:text-white text-sm leading-none">${c.email}</h4>
+                                    ${statusHtml}
+                                </div>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1">Exp: <span class="${isExpired ? 'text-rose-500 font-bold' : ''}">${expDate}</span></p>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="viewClientConfig(${index})" title="Get QR & Config" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition flex items-center justify-center border border-slate-200 dark:border-slate-700 active:scale-95 shadow-sm">
+                                    <i class="fa-solid fa-qrcode text-xs"></i>
+                                </button>
+                                <button onclick="openEditClientModal(${index})" title="Edit Client" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition flex items-center justify-center border border-slate-200 dark:border-slate-700 active:scale-95 shadow-sm">
+                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                </button>
+                                <button onclick="deleteClientFromPanel('${c.uuid || c.id}', '${c.email}')" title="Delete" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 hover:text-rose-500 dark:text-slate-400 dark:hover:text-rose-400 transition flex items-center justify-center border border-slate-200 dark:border-slate-700 active:scale-95 shadow-sm">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 sub-card rounded-xl p-2.5 mb-3 font-mono text-[11px]">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-down text-emerald-500 text-xs"></i>
+                                <div>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 block">BYTE IN (DL)</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200">${formatBytes(downBytes)}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-up text-blue-500 text-xs"></i>
+                                <div>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 block">BYTE OUT (UL)</span>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200">${formatBytes(upBytes)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <div class="flex justify-between items-center text-[11px] mb-1.5 font-mono">
+                                <span class="font-bold ${textClass}">${isFull ? 'Data Limit Reached' : `${usedGB} / ${totalGBText}`}</span>
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-100 dark:bg-slate-800 ${textClass}">
+                                    ${totalGBVal > 0 ? `${Math.round(percent)}%` : 'Unlimited'}
+                                </span>
+                            </div>
+                            <div class="w-full progress-bar-container rounded-full h-2.5 overflow-hidden p-[2px]">
+                                <div class="${barClass} h-full rounded-full transition-all duration-700 ease-out" style="width: ${totalGBVal === 0 ? '100' : Math.max(percent, 3)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statOnline').innerText = onlineCount;
+            document.getElementById('statOffline').innerText = Math.max(0, total - onlineCount);
+        }
+
+        window.openEditClientModal = function(index) {
+            const c = currentClientsList[index];
+            if (!c) return;
+            document.getElementById('editClientUuid').value = c.uuid || c.id || '';
+            document.getElementById('editCEmail').value = c.email || '';
+            
+            let totalGbValue = 0;
+            if (c.total !== undefined && Number(c.total) > 0) {
+                totalGbValue = Math.round(Number(c.total) / 1073741824);
+            } else if (c.totalGB !== undefined && Number(c.totalGB) > 0) {
+                totalGbValue = Number(c.totalGB) > 100000 ? Math.round(Number(c.totalGB) / 1073741824) : Number(c.totalGB);
+            }
+
+            document.getElementById('editCGB').value = totalGbValue;
+            document.getElementById('editCDays').value = 0;
+            document.getElementById('editCEnable').checked = c.enable !== false;
+            openModal('editClientModal');
+        }
+
+        window.saveClientEditToPanel = async function() {
+            const uuid = document.getElementById('editClientUuid').value;
+            const email = document.getElementById('editCEmail').value.trim();
+            if (!email) return showToast("Client Name (Email) ထည့်ပါ", true);
+
+            const totalGB = parseFloat(document.getElementById('editCGB').value) || 0;
+            const days = parseInt(document.getElementById('editCDays').value) || 0;
+            const enable = document.getElementById('editCEnable').checked;
+
+            const btn = document.getElementById('editClientSubmitBtn');
+            btn.disabled = true; btn.innerText = "Updating...";
+
+            try {
+                const res = await fetch(`${WORKER_URL}?action=updateClient`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        panelUrl: selectedServer.url,
+                        username: selectedServer.username,
+                        password: selectedServer.password,
+                        inboundId: selectedServer.inboundId,
+                        clientUuid: uuid,
+                        client: {
+                            email: email,
+                            totalGB: totalGB,
+                            days: days,
+                            enable: enable
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || "ပြင်ဆင်၍ မရပါ");
+
+                closeModal('editClientModal');
+                showToast("Client အချက်အလက်ကို 3X-UI Panel တွင် ပြင်ဆင်ပြီးပါပြီ");
+                fetchPanelClients(false);
+            } catch (e) {
+                showToast(e.message, true);
+            } finally {
+                btn.disabled = false; btn.innerText = "Update in 3X-UI Panel";
+            }
+        }
+
+        window.viewClientConfig = function(index) {
+            const client = currentClientsList[index];
+            if (!client || !client.configLink) return showToast("Config Link မရှိသေးပါ", true);
+            document.getElementById('configText').value = client.configLink;
+            renderQrCode('clientQrCode', client.configLink, 170);
+            openModal('configModal');
+        }
+
+        window.copyConfig = function() {
+            const text = document.getElementById('configText');
+            text.select();
+            text.setSelectionRange(0, 99999);
+            try {
+                navigator.clipboard.writeText(text.value);
+            } catch (err) {
+                document.execCommand('copy');
+            }
+            closeModal('configModal');
+            showToast("Config Key ကို အောင်မြင်စွာ ကူးယူပြီးပါပြီ");
+        }
+
+        window.showNewClientConfigModal = function(client, totalGB, days) {
+            document.getElementById('popupClientEmailBadge').innerText = client.email;
+            document.getElementById('popupClientDataBadge').innerText = totalGB > 0 ? `${totalGB} GB` : 'Unlimited';
+            document.getElementById('popupClientDaysBadge').innerText = days > 0 ? `${days} Days` : 'Unlimited';
+            document.getElementById('newConfigText').value = client.configLink;
+            
+            // Generate QR for New Client
+            renderQrCode('newClientQrCode', client.configLink, 170);
+            
+            openModal('newConfigModal');
+        }
+
+        window.copyNewConfig = function() {
+            const text = document.getElementById('newConfigText');
+            text.select();
+            text.setSelectionRange(0, 99999);
+            try {
+                navigator.clipboard.writeText(text.value);
+            } catch (err) {
+                document.execCommand('copy');
+            }
+            closeModal('newConfigModal');
+            showToast("Config Key ကို အောင်မြင်စွာ ကူးယူပြီးပါပြီ");
+        }
+
+        window.prepareAddClient = function() {
+            document.getElementById('cEmail').value = '';
+            document.getElementById('cGB').value = '300';
+            document.getElementById('cDays').value = '30';
+            openModal('clientModal');
+        }
+
+        window.saveClientToPanel = async function() {
+            const email = document.getElementById('cEmail').value.trim();
+            if (!email) return showToast("Client Name (Email) ထည့်သွင်းပါ", true);
+
+            const daysInput = document.getElementById('cDays').value.trim();
+            const days = daysInput === '' || isNaN(parseInt(daysInput)) ? 30 : parseInt(daysInput);
+            const totalGB = parseFloat(document.getElementById('cGB').value) || 0;
+            const newUuid = crypto.randomUUID();
+
+            const btn = document.getElementById('clientSubmitBtn');
+            btn.disabled = true; btn.innerText = "Adding to Panel...";
+
+            try {
+                const res = await fetch(`${WORKER_URL}?action=addClient`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        panelUrl: selectedServer.url,
+                        username: selectedServer.username,
+                        password: selectedServer.password,
+                        inboundId: selectedServer.inboundId,
+                        client: {
+                            email: email,
+                            totalGB: totalGB,
+                            days: days,
+                            uuid: newUuid
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || "Client ဖန်တီး၍ မရပါ");
+                }
+
+                closeModal('clientModal');
+                showToast("Client အား 3X-UI Panel ထဲသို့ အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ");
+
+                await fetchPanelClients(false);
+                const createdClient = currentClientsList.find(c => c.email.toLowerCase() === email.toLowerCase() || c.uuid === newUuid);
+                if (createdClient && createdClient.configLink) {
+                    showNewClientConfigModal(createdClient, totalGB, days);
+                }
+            } catch (e) {
+                showToast(e.message, true);
+            } finally {
+                btn.disabled = false; btn.innerText = "Create in 3X-UI Panel";
+            }
+        }
+
+        window.deleteClientFromPanel = function(clientUuid, email) {
+            openConfirm(`Client "${email}" အား 3X-UI Panel ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေချာပါသလား?`, async () => {
+                try {
+                    const res = await fetch(`${WORKER_URL}?action=delClient`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            panelUrl: selectedServer.url,
+                            username: selectedServer.username,
+                            password: selectedServer.password,
+                            inboundId: selectedServer.inboundId,
+                            clientUuid: clientUuid
+                        })
+                    });
+
+                    const text = await res.text();
+                    let data = {};
+                    try {
+                        data = JSON.parse(text);
+                    } catch(e) {
+                        data = { success: res.ok };
+                    }
+
+                    if (!data.success && res.status >= 400) {
+                        throw new Error(data.error || "ဖျက်၍မရပါ");
+                    }
+
+                    showToast(`Client "${email}" အား Panel ထဲမှ ဖျက်ပြီးပါပြီ`);
+                    await fetchPanelClients(false);
+                } catch (e) {
+                    showToast(e.message, true);
+                }
+            });
+        }
+
+        window.openAdminModal = function() {
+            if (ADMIN_PASS) {
+                showView('adminPanelView');
+                loadAdminServers();
+            } else {
+                openModal('adminLoginModal');
+            }
+        }
+
+        window.verifyAdminLogin = async function() {
+            const pass = document.getElementById('adminMasterPass').value.trim();
+            if (!pass) return showToast("Password ထည့်ပါ", true);
+
+            const btn = document.getElementById('adminLoginSubmitBtn');
+            btn.disabled = true; btn.innerText = "Checking...";
+
+            try {
+                const res = await fetch(`${WORKER_URL}?action=verifyAdmin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    ADMIN_PASS = pass;
+                    localStorage.setItem("firebase_v2ray_admin_pass", pass);
+                    closeModal('adminLoginModal');
+                    showView('adminPanelView');
+                    loadAdminServers();
+                    showToast("Admin Panel သို့ ဝင်ရောက်ပြီးပါပြီ");
+                } else {
+                    showToast("Master Password မှားယွင်းနေပါသည်", true);
+                }
+            } catch (e) {
+                showToast("Cloudflare Worker ချိတ်ဆက်မှု မအောင်မြင်ပါ", true);
+            }
+            btn.disabled = false; btn.innerText = "Unlock Admin Panel";
+        }
+
+        window.adminLogout = function() {
+            ADMIN_PASS = "";
+            localStorage.removeItem("firebase_v2ray_admin_pass");
+            showToast("Admin အကောင့်မှ ထွက်ပြီးပါပြီ");
+            goHome();
+        }
+
+        window.loadAdminServers = async function() {
+            const list = document.getElementById('adminServersList');
+            list.innerHTML = '<div class="loader mx-auto col-span-full"></div>';
+
+            try {
+                const snap = await getDocs(collection(db, 'servers'));
+                const servers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                list.innerHTML = '';
+                if (servers.length === 0) {
+                    list.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl text-xs">ဆာဗာ မရှိသေးပါ။</div>`;
+                    return;
+                }
+
+                servers.forEach(s => {
+                    const sJson = encodeURIComponent(JSON.stringify(s));
+                    const flagHtml = s.flagLink 
+                        ? `<div class="flag-avatar-container"><img src="${s.flagLink}" class="flag-avatar-img" onerror="this.parentElement.innerHTML='<div class=\\'text-blue-500 font-bold text-xs\\'>${s.name ? s.name.charAt(0) : 'S'}</div>'"></div>`
+                        : `<div class="flag-avatar-container text-blue-600 dark:text-blue-400 font-bold text-xs">${s.name ? s.name.charAt(0) : 'S'}</div>`;
+
+                    const noteHtml = s.note 
+                        ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-xs mt-0.5">${s.note}</p>` 
+                        : '';
+
+                    list.innerHTML += `
+                        <div class="glass-panel p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 relative shadow-sm">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    ${flagHtml}
+                                    <div>
+                                        <h3 class="font-extrabold text-slate-900 dark:text-white text-sm leading-tight">${s.name}</h3>
+                                        ${noteHtml}
+                                        <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">VLESS • Ready</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <button onclick='editServer("${sJson}")' class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-blue-600 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition active:scale-95 shadow-sm">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteServer('${s.id}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-red-500 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition active:scale-95 shadow-sm">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                list.innerHTML = `<div class="col-span-full text-center text-red-500 text-xs">Error loading servers</div>`;
+            }
+        }
+
+        window.prepareAddServer = function() {
+            document.getElementById('serverModalTitle').innerHTML = '<i class="fa-solid fa-server text-blue-500"></i> Add Server';
+            ['sId', 'sName', 'sNote', 'sFlag', 'sInbound', 'sUrl', 'sUser', 'sPass'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.getElementById('sInbound').value = '1';
+            openModal('serverModal');
+        }
+
+        window.editServer = function(sJsonEnc) {
+            const s = JSON.parse(decodeURIComponent(sJsonEnc));
+            document.getElementById('serverModalTitle').innerHTML = '<i class="fa-solid fa-pen text-blue-500"></i> Edit Server';
+            document.getElementById('sId').value = s.id || '';
+            document.getElementById('sName').value = s.name || '';
+            document.getElementById('sNote').value = s.note || '';
+            document.getElementById('sFlag').value = s.flagLink || '';
+            document.getElementById('sInbound').value = s.inboundId || '1';
+            document.getElementById('sUrl').value = s.url || '';
+            document.getElementById('sUser').value = s.username || '';
+            document.getElementById('sPass').value = s.password || '';
+            openModal('serverModal');
+        }
+
+        window.saveServer = async function() {
+            const id = document.getElementById('sId').value || "srv_" + Date.now();
+            const payload = {
+                name: document.getElementById('sName').value.trim(),
+                note: document.getElementById('sNote').value.trim(),
+                flagLink: document.getElementById('sFlag').value.trim(),
+                inboundId: document.getElementById('sInbound').value.trim(),
+                url: document.getElementById('sUrl').value.trim(),
+                username: document.getElementById('sUser').value.trim(),
+                password: document.getElementById('sPass').value.trim(),
+                createdAt: Date.now()
+            };
+
+            if (!payload.name || !payload.inboundId || !payload.url || !payload.username || !payload.password) {
+                return showToast("အချက်အလက်များ အားလုံး ပြည့်စုံစွာ ဖြည့်သွင်းပါ", true);
+            }
+
+            const btn = document.getElementById('saveServerBtn');
+            btn.disabled = true; btn.innerText = "Saving to Firebase...";
+
+            try {
+                const docRef = doc(db, 'servers', id);
+                await setDoc(docRef, payload, { merge: true });
+                closeModal('serverModal');
+                showToast("Server အချက်အလက် သိမ်းဆည်းပြီးပါပြီ");
+                loadAdminServers();
+            } catch (e) {
+                showToast(e.message, true);
+            }
+            btn.disabled = false; btn.innerText = "Save Server Details";
+        }
+
+        window.deleteServer = function(id) {
+            openConfirm("ဤ Server အား ဖျက်ပစ်ရန် သေချာပါသလား?", async () => {
+                try {
+                    const docRef = doc(db, 'servers', id);
+                    await deleteDoc(docRef);
+                    showToast("Server အား ဖျက်ပြီးပါပြီ");
+                    loadAdminServers();
+                } catch (e) { 
+                    showToast(e.message, true); 
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
